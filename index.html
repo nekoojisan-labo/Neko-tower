@@ -1,0 +1,1550 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>にゃんこタワー ～お菓子の国の大冒険～</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        #gameContainer {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            padding: 20px;
+            max-width: 1200px;
+            width: 100%;
+        }
+
+        #gameHeader {
+            text-align: center;
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 15px;
+            border-radius: 15px;
+        }
+
+        #gameTitle {
+            font-size: 24px;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            margin-bottom: 10px;
+        }
+
+        #gameInfo {
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .infoBox {
+            background: rgba(255,255,255,0.2);
+            padding: 8px 15px;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        #gameCanvas {
+            border: 3px solid #f093fb;
+            border-radius: 10px;
+            display: block;
+            margin: 0 auto 20px;
+            cursor: pointer;
+            max-width: 100%;
+        }
+
+        #unitSelection {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .unitCard {
+            background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+            border: 3px solid #f093fb;
+            border-radius: 15px;
+            padding: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+            width: 110px;
+            position: relative;
+        }
+
+        .unitCard:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        }
+
+        .unitCard.selected {
+            background: linear-gradient(135deg, #ffeaa7 0%, #f5576c 100%);
+            transform: scale(1.1);
+        }
+
+        .unitEmoji {
+            font-size: 30px;
+            margin-bottom: 5px;
+        }
+
+        .unitName {
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 3px;
+            font-size: 11px;
+        }
+
+        .unitCost {
+            color: #666;
+            font-size: 12px;
+        }
+
+        .unitLevel {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background: gold;
+            color: #333;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            font-weight: bold;
+        }
+
+        #controls {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        #tutorial {
+            background: #ffeaa7;
+            padding: 10px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            text-align: center;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        #stageInfo {
+            background: linear-gradient(135deg, #ff6b6b 0%, #feca57 100%);
+            color: white;
+            padding: 10px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        #gameOver, #stageClear {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+            text-align: center;
+            z-index: 1000;
+            display: none;
+        }
+
+        .stars {
+            font-size: 40px;
+            margin: 15px 0;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .effect {
+            position: absolute;
+            pointer-events: none;
+            animation: fadeOut 1s forwards;
+        }
+
+        @keyframes fadeOut {
+            from { opacity: 1; transform: scale(1); }
+            to { opacity: 0; transform: scale(1.5); }
+        }
+    </style>
+</head>
+<body>
+    <div id="gameContainer">
+        <div id="gameHeader">
+            <div id="gameTitle">🐱 にゃんこタワー ～お菓子の国の大冒険～ 🍰</div>
+            <div id="gameInfo">
+                <div class="infoBox">💰 コイン: <span id="coins">300</span></div>
+                <div class="infoBox">❤️ ライフ: <span id="lives">10</span></div>
+                <div class="infoBox">🌊 ウェーブ: <span id="wave">1</span>/<span id="maxWave">5</span></div>
+                <div class="infoBox">⭐ スコア: <span id="score">0</span></div>
+            </div>
+        </div>
+
+        <div id="stageInfo">
+            ステージ <span id="currentStage">1</span> / 10 - <span id="stageName">クッキーの森</span>
+        </div>
+
+        <div id="tutorial">
+            <strong>🎮 あそびかた</strong><br>
+            ①ネコをえらぶ ②みちのそばに配置 ③同じ場所に再配置でレベルアップ！(最大Lv.3)
+        </div>
+
+        <canvas id="gameCanvas" width="900" height="450"></canvas>
+
+        <div id="unitSelection">
+            <div class="unitCard" data-unit="milk">
+                <div class="unitEmoji">🥛</div>
+                <div class="unitName">ミルクキャット</div>
+                <div class="unitCost">💰 <span class="cost">50</span></div>
+                <div class="unitLevel" style="display:none">1</div>
+            </div>
+            <div class="unitCard" data-unit="cookie">
+                <div class="unitEmoji">🍪</div>
+                <div class="unitName">クッキーパンサー</div>
+                <div class="unitCost">💰 <span class="cost">75</span></div>
+                <div class="unitLevel" style="display:none">1</div>
+            </div>
+            <div class="unitCard" data-unit="candy">
+                <div class="unitEmoji">🍬</div>
+                <div class="unitName">キャンディライオン</div>
+                <div class="unitCost">💰 <span class="cost">100</span></div>
+                <div class="unitLevel" style="display:none">1</div>
+            </div>
+            <div class="unitCard" data-unit="whip">
+                <div class="unitEmoji">🍦</div>
+                <div class="unitName">ホイップフォックス</div>
+                <div class="unitCost">💰 <span class="cost">80</span></div>
+                <div class="unitLevel" style="display:none">1</div>
+            </div>
+            <div class="unitCard" data-unit="biscuit">
+                <div class="unitEmoji">🍩</div>
+                <div class="unitName">ビスケットハムスター</div>
+                <div class="unitCost">💰 <span class="cost">60</span></div>
+                <div class="unitLevel" style="display:none">1</div>
+            </div>
+            <div class="unitCard" data-unit="jelly">
+                <div class="unitEmoji">🍮</div>
+                <div class="unitName">ゼリービーバー</div>
+                <div class="unitCost">💰 <span class="cost">40</span></div>
+                <div class="unitLevel" style="display:none">1</div>
+            </div>
+        </div>
+
+        <div id="controls">
+            <button id="startWave">ウェーブスタート！ 🚀</button>
+            <button id="pauseGame">いちじていし ⏸️</button>
+            <button id="speedUp">はやおくり ⏩</button>
+            <button id="sellMode">うりモード 💸</button>
+            <button id="nextStage" style="display:none">つぎのステージ ➡️</button>
+        </div>
+    </div>
+
+    <div id="gameOver">
+        <h2>ゲームオーバー 😢</h2>
+        <p>ステージ <span id="finalStage">1</span> でやられちゃった...</p>
+        <p>さいこうスコア: <span id="finalScore">0</span></p>
+        <button onclick="location.reload()">もういちど！</button>
+    </div>
+
+    <div id="stageClear">
+        <h2>ステージクリア！ 🎉</h2>
+        <div class="stars" id="starRating">⭐⭐⭐</div>
+        <p>スコア: <span id="clearScore">0</span></p>
+        <p>ボーナスコイン: +<span id="bonusCoins">100</span>💰</p>
+        <button id="continueBtn">つぎのステージへ！</button>
+    </div>
+
+    <script>
+        class TowerDefenseGame {
+            constructor() {
+                this.canvas = document.getElementById('gameCanvas');
+                this.ctx = this.canvas.getContext('2d');
+                this.gridSize = 45;
+                this.cols = 20;
+                this.rows = 10;
+                
+                // ゲーム状態
+                this.currentStage = 1;
+                this.coins = 300;
+                this.lives = 10;
+                this.wave = 1;
+                this.maxWave = 5;
+                this.score = 0;
+                this.isPaused = false;
+                this.gameSpeed = 1;
+                this.isWaveActive = false;
+                this.selectedUnit = null;
+                this.sellMode = false;
+                
+                // ゲームオブジェクト
+                this.units = [];
+                this.enemies = [];
+                this.projectiles = [];
+                this.effects = [];
+                this.particles = [];
+                
+                // ステージ設定
+                this.stages = this.defineStages();
+                this.currentPath = [];
+                
+                // ユニット定義
+                this.unitTypes = this.defineUnitTypes();
+                
+                // 敵定義
+                this.enemyTypes = this.defineEnemyTypes();
+                
+                // タイマー
+                this.enemySpawnTimer = 0;
+                this.enemySpawnDelay = 2000;
+                this.enemiesInWave = [];
+                this.enemyIndex = 0;
+                
+                this.init();
+            }
+            
+            defineStages() {
+                return [
+                    {
+                        name: 'クッキーの森',
+                        background: '#f4e4c1',
+                        pathColor: '#8b4513',
+                        waves: 5,
+                        startCoins: 300,
+                        path: [
+                            {x: 0, y: 5}, {x: 3, y: 5}, {x: 3, y: 2}, {x: 7, y: 2},
+                            {x: 7, y: 7}, {x: 12, y: 7}, {x: 12, y: 4}, {x: 16, y: 4},
+                            {x: 16, y: 8}, {x: 20, y: 8}
+                        ],
+                        enemies: ['gummy', 'gummy', 'choco']
+                    },
+                    {
+                        name: 'キャンディ川',
+                        background: '#ffe4e1',
+                        pathColor: '#ff69b4',
+                        waves: 6,
+                        startCoins: 350,
+                        path: [
+                            {x: 0, y: 2}, {x: 4, y: 2}, {x: 4, y: 6}, {x: 8, y: 6},
+                            {x: 8, y: 3}, {x: 12, y: 3}, {x: 12, y: 8}, {x: 16, y: 8},
+                            {x: 16, y: 5}, {x: 20, y: 5}
+                        ],
+                        enemies: ['gummy', 'choco', 'donut', 'marshmallow']
+                    },
+                    {
+                        name: 'チョコの山',
+                        background: '#d2691e',
+                        pathColor: '#654321',
+                        waves: 7,
+                        startCoins: 400,
+                        path: [
+                            {x: 0, y: 8}, {x: 3, y: 8}, {x: 3, y: 5}, {x: 6, y: 5},
+                            {x: 6, y: 2}, {x: 10, y: 2}, {x: 10, y: 5}, {x: 14, y: 5},
+                            {x: 14, y: 8}, {x: 17, y: 8}, {x: 17, y: 3}, {x: 20, y: 3}
+                        ],
+                        enemies: ['choco', 'donut', 'marshmallow', 'cake']
+                    },
+                    {
+                        name: 'マシュマロ雲',
+                        background: '#e6f3ff',
+                        pathColor: '#87ceeb',
+                        waves: 8,
+                        startCoins: 450,
+                        path: [
+                            {x: 0, y: 1}, {x: 5, y: 1}, {x: 5, y: 5}, {x: 2, y: 5},
+                            {x: 2, y: 8}, {x: 8, y: 8}, {x: 8, y: 3}, {x: 13, y: 3},
+                            {x: 13, y: 7}, {x: 17, y: 7}, {x: 17, y: 2}, {x: 20, y: 2}
+                        ],
+                        enemies: ['marshmallow', 'cake', 'pudding', 'icecream']
+                    },
+                    {
+                        name: 'ゼリーの海',
+                        background: '#98fb98',
+                        pathColor: '#228b22',
+                        waves: 9,
+                        startCoins: 500,
+                        path: [
+                            {x: 0, y: 5}, {x: 2, y: 5}, {x: 2, y: 2}, {x: 5, y: 2},
+                            {x: 5, y: 8}, {x: 9, y: 8}, {x: 9, y: 4}, {x: 12, y: 4},
+                            {x: 12, y: 7}, {x: 15, y: 7}, {x: 15, y: 1}, {x: 18, y: 1},
+                            {x: 18, y: 6}, {x: 20, y: 6}
+                        ],
+                        enemies: ['pudding', 'icecream', 'cake', 'candy']
+                    },
+                    {
+                        name: 'プリンの谷',
+                        background: '#ffd700',
+                        pathColor: '#ff8c00',
+                        waves: 10,
+                        startCoins: 550,
+                        path: [
+                            {x: 0, y: 9}, {x: 3, y: 9}, {x: 3, y: 6}, {x: 6, y: 6},
+                            {x: 6, y: 3}, {x: 3, y: 3}, {x: 3, y: 0}, {x: 9, y: 0},
+                            {x: 9, y: 4}, {x: 12, y: 4}, {x: 12, y: 8}, {x: 16, y: 8},
+                            {x: 16, y: 5}, {x: 20, y: 5}
+                        ],
+                        enemies: ['pudding', 'candy', 'waffle', 'macaron']
+                    },
+                    {
+                        name: 'ドーナツタウン',
+                        background: '#ffb6c1',
+                        pathColor: '#c71585',
+                        waves: 11,
+                        startCoins: 600,
+                        path: [
+                            {x: 0, y: 4}, {x: 4, y: 4}, {x: 4, y: 1}, {x: 8, y: 1},
+                            {x: 8, y: 5}, {x: 5, y: 5}, {x: 5, y: 9}, {x: 11, y: 9},
+                            {x: 11, y: 6}, {x: 14, y: 6}, {x: 14, y: 3}, {x: 17, y: 3},
+                            {x: 17, y: 7}, {x: 20, y: 7}
+                        ],
+                        enemies: ['donut', 'waffle', 'macaron', 'tart']
+                    },
+                    {
+                        name: 'ケーキ城への道',
+                        background: '#dda0dd',
+                        pathColor: '#8b008b',
+                        waves: 12,
+                        startCoins: 650,
+                        path: [
+                            {x: 0, y: 7}, {x: 2, y: 7}, {x: 2, y: 4}, {x: 5, y: 4},
+                            {x: 5, y: 1}, {x: 8, y: 1}, {x: 8, y: 6}, {x: 11, y: 6},
+                            {x: 11, y: 3}, {x: 14, y: 3}, {x: 14, y: 8}, {x: 17, y: 8},
+                            {x: 17, y: 5}, {x: 19, y: 5}, {x: 19, y: 2}, {x: 20, y: 2}
+                        ],
+                        enemies: ['cake', 'tart', 'parfait', 'boss1']
+                    },
+                    {
+                        name: 'ケーキ城・中庭',
+                        background: '#f0e68c',
+                        pathColor: '#b8860b',
+                        waves: 13,
+                        startCoins: 700,
+                        path: [
+                            {x: 0, y: 5}, {x: 3, y: 5}, {x: 3, y: 2}, {x: 6, y: 2},
+                            {x: 6, y: 7}, {x: 9, y: 7}, {x: 9, y: 4}, {x: 12, y: 4},
+                            {x: 12, y: 1}, {x: 15, y: 1}, {x: 15, y: 6}, {x: 18, y: 6},
+                            {x: 18, y: 9}, {x: 20, y: 9}
+                        ],
+                        enemies: ['parfait', 'boss1', 'boss2', 'macaron']
+                    },
+                    {
+                        name: 'ケーキ城・玉座',
+                        background: '#ff1493',
+                        pathColor: '#8b0000',
+                        waves: 15,
+                        startCoins: 800,
+                        path: [
+                            {x: 0, y: 0}, {x: 4, y: 0}, {x: 4, y: 3}, {x: 1, y: 3},
+                            {x: 1, y: 6}, {x: 4, y: 6}, {x: 4, y: 9}, {x: 8, y: 9},
+                            {x: 8, y: 6}, {x: 11, y: 6}, {x: 11, y: 3}, {x: 14, y: 3},
+                            {x: 14, y: 6}, {x: 17, y: 6}, {x: 17, y: 9}, {x: 20, y: 9},
+                            {x: 20, y: 5}
+                        ],
+                        enemies: ['boss1', 'boss2', 'boss3', 'parfait']
+                    }
+                ];
+            }
+            
+            defineUnitTypes() {
+                return {
+                    milk: {
+                        name: 'ミルクキャット',
+                        emoji: '🥛',
+                        baseCost: 50,
+                        upgradeCost: [50, 100, 200],
+                        damage: [10, 20, 40],
+                        range: [80, 100, 120],
+                        fireRate: [1500, 1200, 900],
+                        special: 'slow',
+                        projectileColor: ['#ffffff', '#f0f0f0', '#e0e0e0'],
+                        effectEmoji: ['❄️', '🌨️', '🏔️']
+                    },
+                    cookie: {
+                        name: 'クッキーパンサー',
+                        emoji: '🍪',
+                        baseCost: 75,
+                        upgradeCost: [75, 150, 300],
+                        damage: [15, 30, 60],
+                        range: [60, 70, 80],
+                        fireRate: [800, 600, 400],
+                        special: 'rapid',
+                        projectileColor: ['#d4a574', '#b8935f', '#9c7a4a'],
+                        effectEmoji: ['💨', '🌪️', '🌀']
+                    },
+                    candy: {
+                        name: 'キャンディライオン',
+                        emoji: '🍬',
+                        baseCost: 100,
+                        upgradeCost: [100, 200, 400],
+                        damage: [25, 50, 100],
+                        range: [100, 120, 150],
+                        fireRate: [2000, 1700, 1400],
+                        special: 'area',
+                        projectileColor: ['#ff69b4', '#ff1493', '#c71585'],
+                        effectEmoji: ['💥', '🎆', '🎇']
+                    },
+                    whip: {
+                        name: 'ホイップフォックス',
+                        emoji: '🍦',
+                        baseCost: 80,
+                        upgradeCost: [80, 160, 320],
+                        damage: [0, 0, 0],
+                        range: [80, 100, 120],
+                        fireRate: [2000, 1500, 1000],
+                        special: 'support',
+                        healAmount: [5, 10, 20],
+                        buffAmount: [1.1, 1.2, 1.5],
+                        projectileColor: ['#fffacd', '#fff8dc', '#ffefd5'],
+                        effectEmoji: ['💚', '💖', '💝']
+                    },
+                    biscuit: {
+                        name: 'ビスケットハムスター',
+                        emoji: '🍩',
+                        baseCost: 60,
+                        upgradeCost: [60, 120, 240],
+                        damage: [0, 0, 0],
+                        range: [0, 0, 0],
+                        fireRate: [5000, 4000, 3000],
+                        special: 'economy',
+                        coinGeneration: [10, 20, 40],
+                        projectileColor: ['#daa520', '#ffd700', '#ffed4e'],
+                        effectEmoji: ['💰', '💎', '👑']
+                    },
+                    jelly: {
+                        name: 'ゼリービーバー',
+                        emoji: '🍮',
+                        baseCost: 40,
+                        upgradeCost: [40, 80, 160],
+                        damage: [8, 16, 32],
+                        range: [70, 85, 100],
+                        fireRate: [1000, 800, 600],
+                        special: 'bounce',
+                        bounceCount: [1, 2, 3],
+                        projectileColor: ['#ffd700', '#ffa500', '#ff8c00'],
+                        effectEmoji: ['🔸', '🔶', '🔷']
+                    }
+                };
+            }
+            
+            defineEnemyTypes() {
+                return {
+                    // 基本敵
+                    gummy: {
+                        emoji: '🐻',
+                        baseHp: 30,
+                        speed: 1.0,
+                        reward: 10,
+                        color: '#ff6b6b'
+                    },
+                    choco: {
+                        emoji: '🍫',
+                        baseHp: 50,
+                        speed: 0.8,
+                        reward: 15,
+                        color: '#8b4513'
+                    },
+                    donut: {
+                        emoji: '🍩',
+                        baseHp: 40,
+                        speed: 1.5,
+                        reward: 12,
+                        color: '#ff1493'
+                    },
+                    // 中級敵
+                    marshmallow: {
+                        emoji: '☁️',
+                        baseHp: 70,
+                        speed: 0.9,
+                        reward: 20,
+                        color: '#ffffff',
+                        flying: true
+                    },
+                    cake: {
+                        emoji: '🍰',
+                        baseHp: 100,
+                        speed: 0.6,
+                        reward: 25,
+                        color: '#ffb6c1'
+                    },
+                    pudding: {
+                        emoji: '🍮',
+                        baseHp: 80,
+                        speed: 1.1,
+                        reward: 22,
+                        color: '#ffd700'
+                    },
+                    // 上級敵
+                    icecream: {
+                        emoji: '🍨',
+                        baseHp: 120,
+                        speed: 1.2,
+                        reward: 30,
+                        color: '#87ceeb',
+                        freezeResist: true
+                    },
+                    candy: {
+                        emoji: '🍭',
+                        baseHp: 90,
+                        speed: 1.4,
+                        reward: 28,
+                        color: '#ff69b4'
+                    },
+                    waffle: {
+                        emoji: '🧇',
+                        baseHp: 150,
+                        speed: 0.7,
+                        reward: 35,
+                        color: '#daa520',
+                        armor: 0.5
+                    },
+                    // 特殊敵
+                    macaron: {
+                        emoji: '🌈',
+                        baseHp: 110,
+                        speed: 1.3,
+                        reward: 32,
+                        color: '#dda0dd',
+                        splitOnDeath: true
+                    },
+                    tart: {
+                        emoji: '🥧',
+                        baseHp: 130,
+                        speed: 0.9,
+                        reward: 38,
+                        color: '#f4a460'
+                    },
+                    parfait: {
+                        emoji: '🍧',
+                        baseHp: 140,
+                        speed: 1.0,
+                        reward: 40,
+                        color: '#ff6347',
+                        regenerate: true
+                    },
+                    // ボス
+                    boss1: {
+                        emoji: '🎂',
+                        baseHp: 300,
+                        speed: 0.5,
+                        reward: 100,
+                        color: '#ff1493',
+                        isBoss: true
+                    },
+                    boss2: {
+                        emoji: '👑',
+                        baseHp: 500,
+                        speed: 0.4,
+                        reward: 150,
+                        color: '#ffd700',
+                        isBoss: true,
+                        armor: 0.3
+                    },
+                    boss3: {
+                        emoji: '🏰',
+                        baseHp: 800,
+                        speed: 0.3,
+                        reward: 200,
+                        color: '#8b008b',
+                        isBoss: true,
+                        armor: 0.5,
+                        regenerate: true
+                    }
+                };
+            }
+            
+            init() {
+                this.loadStage(this.currentStage);
+                this.setupEventListeners();
+                this.gameLoop();
+            }
+            
+            loadStage(stageNum) {
+                const stage = this.stages[stageNum - 1];
+                this.currentPath = stage.path;
+                this.maxWave = stage.waves;
+                this.wave = 1;
+                this.coins = stage.startCoins;
+                
+                // ステージ情報更新
+                document.getElementById('currentStage').textContent = stageNum;
+                document.getElementById('stageName').textContent = stage.name;
+                document.getElementById('maxWave').textContent = stage.waves;
+                
+                // キャンバス背景色
+                this.stageBackground = stage.background;
+                this.pathColor = stage.pathColor;
+                
+                this.updateUI();
+            }
+            
+            setupEventListeners() {
+                // ユニット選択
+                document.querySelectorAll('.unitCard').forEach(card => {
+                    card.addEventListener('click', () => {
+                        if (this.sellMode) {
+                            this.sellMode = false;
+                            document.getElementById('sellMode').textContent = 'うりモード 💸';
+                        }
+                        document.querySelectorAll('.unitCard').forEach(c => c.classList.remove('selected'));
+                        card.classList.add('selected');
+                        this.selectedUnit = card.dataset.unit;
+                    });
+                });
+                
+                // キャンバスクリック
+                this.canvas.addEventListener('click', (e) => this.handleCanvasClick(e));
+                
+                // コントロールボタン
+                document.getElementById('startWave').addEventListener('click', () => this.startWave());
+                document.getElementById('pauseGame').addEventListener('click', () => this.togglePause());
+                document.getElementById('speedUp').addEventListener('click', () => this.toggleSpeed());
+                document.getElementById('sellMode').addEventListener('click', () => this.toggleSellMode());
+                document.getElementById('nextStage').addEventListener('click', () => this.nextStage());
+                document.getElementById('continueBtn').addEventListener('click', () => {
+                    document.getElementById('stageClear').style.display = 'none';
+                    this.nextStage();
+                });
+            }
+            
+            handleCanvasClick(e) {
+                const rect = this.canvas.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                const gridX = Math.floor(x / this.gridSize);
+                const gridY = Math.floor(y / this.gridSize);
+                
+                if (this.sellMode) {
+                    this.sellUnit(gridX, gridY);
+                    return;
+                }
+                
+                if (!this.selectedUnit) return;
+                
+                // パス上チェック
+                if (this.isOnPath(gridX, gridY)) return;
+                
+                // 既存ユニットチェック（アップグレード）
+                const existingUnit = this.getUnitAt(gridX, gridY);
+                if (existingUnit) {
+                    this.upgradeUnit(existingUnit);
+                } else {
+                    this.placeUnit(gridX, gridY, this.selectedUnit);
+                }
+            }
+            
+            isOnPath(x, y) {
+                for (let i = 0; i < this.currentPath.length - 1; i++) {
+                    const p1 = this.currentPath[i];
+                    const p2 = this.currentPath[i + 1];
+                    
+                    if (p1.x === p2.x) {
+                        const minY = Math.min(p1.y, p2.y);
+                        const maxY = Math.max(p1.y, p2.y);
+                        if (x === p1.x && y >= minY && y <= maxY) return true;
+                    } else {
+                        const minX = Math.min(p1.x, p2.x);
+                        const maxX = Math.max(p1.x, p2.x);
+                        if (y === p1.y && x >= minX && x <= maxX) return true;
+                    }
+                }
+                return false;
+            }
+            
+            getUnitAt(x, y) {
+                return this.units.find(unit => unit.x === x && unit.y === y);
+            }
+            
+            placeUnit(x, y, type) {
+                const unitType = this.unitTypes[type];
+                const cost = unitType.baseCost;
+                
+                if (this.coins < cost) return;
+                
+                const unit = {
+                    x: x,
+                    y: y,
+                    type: type,
+                    level: 1,
+                    lastFire: 0,
+                    kills: 0
+                };
+                
+                this.units.push(unit);
+                this.coins -= cost;
+                this.updateUI();
+                
+                // 配置エフェクト
+                this.createEffect(x * this.gridSize + this.gridSize/2, y * this.gridSize + this.gridSize/2, '✨');
+            }
+            
+            upgradeUnit(unit) {
+                if (unit.level >= 3) return;
+                
+                const unitType = this.unitTypes[unit.type];
+                const cost = unitType.upgradeCost[unit.level - 1];
+                
+                if (this.coins < cost) return;
+                
+                unit.level++;
+                this.coins -= cost;
+                this.updateUI();
+                
+                // アップグレードエフェクト
+                const x = unit.x * this.gridSize + this.gridSize/2;
+                const y = unit.y * this.gridSize + this.gridSize/2;
+                this.createEffect(x, y, '⬆️');
+                this.createParticles(x, y, 'gold');
+            }
+            
+            sellUnit(x, y) {
+                const unit = this.getUnitAt(x, y);
+                if (!unit) return;
+                
+                const unitType = this.unitTypes[unit.type];
+                let totalValue = unitType.baseCost;
+                for (let i = 1; i < unit.level; i++) {
+                    totalValue += unitType.upgradeCost[i - 1];
+                }
+                
+                const sellValue = Math.floor(totalValue * 0.7);
+                this.coins += sellValue;
+                
+                const index = this.units.indexOf(unit);
+                this.units.splice(index, 1);
+                
+                this.updateUI();
+                
+                // 売却エフェクト
+                this.createEffect(x * this.gridSize + this.gridSize/2, y * this.gridSize + this.gridSize/2, '💰');
+            }
+            
+            toggleSellMode() {
+                this.sellMode = !this.sellMode;
+                document.getElementById('sellMode').textContent = this.sellMode ? 'うりモード ON 💸' : 'うりモード 💸';
+                document.querySelectorAll('.unitCard').forEach(c => c.classList.remove('selected'));
+                this.selectedUnit = null;
+            }
+            
+            startWave() {
+                if (this.isWaveActive) return;
+                
+                this.isWaveActive = true;
+                this.enemyIndex = 0;
+                this.enemiesInWave = this.generateWaveEnemies();
+                document.getElementById('startWave').disabled = true;
+            }
+            
+            generateWaveEnemies() {
+                const stage = this.stages[this.currentStage - 1];
+                const enemies = [];
+                const waveMultiplier = 1 + (this.wave - 1) * 0.3;
+                const stageMultiplier = 1 + (this.currentStage - 1) * 0.2;
+                const count = Math.floor((3 + this.wave * 2) * waveMultiplier);
+                
+                for (let i = 0; i < count; i++) {
+                    const enemyType = stage.enemies[Math.floor(Math.random() * stage.enemies.length)];
+                    enemies.push({
+                        type: enemyType,
+                        hpMultiplier: stageMultiplier * waveMultiplier
+                    });
+                }
+                
+                return enemies;
+            }
+            
+            spawnEnemy() {
+                if (this.enemyIndex >= this.enemiesInWave.length) return;
+                
+                const enemyData = this.enemiesInWave[this.enemyIndex];
+                const enemyType = this.enemyTypes[enemyData.type];
+                
+                const enemy = {
+                    type: enemyData.type,
+                    x: this.currentPath[0].x * this.gridSize + this.gridSize/2,
+                    y: this.currentPath[0].y * this.gridSize + this.gridSize/2,
+                    hp: Math.floor(enemyType.baseHp * enemyData.hpMultiplier),
+                    maxHp: Math.floor(enemyType.baseHp * enemyData.hpMultiplier),
+                    speed: enemyType.speed,
+                    reward: enemyType.reward,
+                    pathIndex: 0,
+                    slowTimer: 0,
+                    frozen: false,
+                    ...enemyType
+                };
+                
+                this.enemies.push(enemy);
+                this.enemyIndex++;
+            }
+            
+            updateEnemies(deltaTime) {
+                for (let i = this.enemies.length - 1; i >= 0; i--) {
+                    const enemy = this.enemies[i];
+                    
+                    // 状態異常の処理
+                    if (enemy.slowTimer > 0) {
+                        enemy.slowTimer -= deltaTime;
+                    }
+                    
+                    if (enemy.frozen) {
+                        continue;
+                    }
+                    
+                    // 再生能力
+                    if (enemy.regenerate && enemy.hp < enemy.maxHp) {
+                        enemy.hp = Math.min(enemy.maxHp, enemy.hp + 0.5);
+                    }
+                    
+                    // 移動
+                    if (enemy.pathIndex < this.currentPath.length - 1) {
+                        const target = this.currentPath[enemy.pathIndex + 1];
+                        const targetX = target.x * this.gridSize + this.gridSize/2;
+                        const targetY = target.y * this.gridSize + this.gridSize/2;
+                        
+                        const dx = targetX - enemy.x;
+                        const dy = targetY - enemy.y;
+                        const distance = Math.sqrt(dx * dx + dy * dy);
+                        
+                        if (distance < 3) {
+                            enemy.pathIndex++;
+                            if (enemy.pathIndex >= this.currentPath.length - 1) {
+                                // ゴール到達
+                                this.lives -= enemy.isBoss ? 3 : 1;
+                                this.enemies.splice(i, 1);
+                                this.updateUI();
+                                
+                                if (this.lives <= 0) {
+                                    this.gameOver();
+                                }
+                            }
+                        } else {
+                            const speedMultiplier = enemy.slowTimer > 0 ? 0.5 : 1;
+                            const moveSpeed = enemy.speed * speedMultiplier * this.gameSpeed;
+                            enemy.x += (dx / distance) * moveSpeed;
+                            enemy.y += (dy / distance) * moveSpeed;
+                        }
+                    }
+                }
+            }
+            
+            updateUnits(currentTime) {
+                this.units.forEach(unit => {
+                    const unitType = this.unitTypes[unit.type];
+                    const level = unit.level - 1;
+                    const fireRate = unitType.fireRate[level];
+                    
+                    if (currentTime - unit.lastFire > fireRate / this.gameSpeed) {
+                        if (unit.type === 'biscuit') {
+                            // コイン生成
+                            this.coins += unitType.coinGeneration[level];
+                            this.createEffect(
+                                unit.x * this.gridSize + this.gridSize/2,
+                                unit.y * this.gridSize + this.gridSize/2,
+                                unitType.effectEmoji[level]
+                            );
+                            unit.lastFire = currentTime;
+                            this.updateUI();
+                        } else if (unit.type === 'whip') {
+                            // サポート効果
+                            this.applySupport(unit, level);
+                            unit.lastFire = currentTime;
+                        } else {
+                            // 攻撃
+                            const target = this.findTarget(unit, level);
+                            if (target) {
+                                this.fireProjectile(unit, target, level);
+                                unit.lastFire = currentTime;
+                            }
+                        }
+                    }
+                });
+            }
+            
+            findTarget(unit, level) {
+                const unitType = this.unitTypes[unit.type];
+                const range = unitType.range[level];
+                
+                let closestEnemy = null;
+                let closestDistance = range;
+                
+                const unitX = unit.x * this.gridSize + this.gridSize/2;
+                const unitY = unit.y * this.gridSize + this.gridSize/2;
+                
+                this.enemies.forEach(enemy => {
+                    // 飛行ユニットへの対応
+                    if (enemy.flying && unit.type !== 'candy' && unit.type !== 'jelly') {
+                        return;
+                    }
+                    
+                    const dx = enemy.x - unitX;
+                    const dy = enemy.y - unitY;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+                    
+                    if (distance < closestDistance) {
+                        closestDistance = distance;
+                        closestEnemy = enemy;
+                    }
+                });
+                
+                return closestEnemy;
+            }
+            
+            fireProjectile(unit, target, level) {
+                const unitType = this.unitTypes[unit.type];
+                
+                const projectile = {
+                    x: unit.x * this.gridSize + this.gridSize/2,
+                    y: unit.y * this.gridSize + this.gridSize/2,
+                    target: target,
+                    damage: unitType.damage[level],
+                    type: unit.type,
+                    level: level,
+                    speed: 5,
+                    special: unitType.special,
+                    color: unitType.projectileColor[level],
+                    bounceCount: unitType.bounceCount ? unitType.bounceCount[level] : 0,
+                    bouncesLeft: unitType.bounceCount ? unitType.bounceCount[level] : 0
+                };
+                
+                this.projectiles.push(projectile);
+            }
+            
+            applySupport(unit, level) {
+                const unitType = this.unitTypes[unit.type];
+                const range = unitType.range[level];
+                const unitX = unit.x * this.gridSize + this.gridSize/2;
+                const unitY = unit.y * this.gridSize + this.gridSize/2;
+                
+                // 味方ユニットをバフ
+                this.units.forEach(ally => {
+                    if (ally === unit) return;
+                    
+                    const dx = ally.x * this.gridSize + this.gridSize/2 - unitX;
+                    const dy = ally.y * this.gridSize + this.gridSize/2 - unitY;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+                    
+                    if (distance < range) {
+                        // バフエフェクト
+                        this.createEffect(
+                            ally.x * this.gridSize + this.gridSize/2,
+                            ally.y * this.gridSize + this.gridSize/2,
+                            unitType.effectEmoji[level]
+                        );
+                    }
+                });
+            }
+            
+            updateProjectiles(deltaTime) {
+                for (let i = this.projectiles.length - 1; i >= 0; i--) {
+                    const proj = this.projectiles[i];
+                    
+                    if (!proj.target || !this.enemies.includes(proj.target)) {
+                        this.projectiles.splice(i, 1);
+                        continue;
+                    }
+                    
+                    const dx = proj.target.x - proj.x;
+                    const dy = proj.target.y - proj.y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+                    
+                    if (distance < 15) {
+                        // ヒット処理
+                        this.handleProjectileHit(proj, proj.target, i);
+                    } else {
+                        // 移動
+                        const moveSpeed = proj.speed * this.gameSpeed;
+                        proj.x += (dx / distance) * moveSpeed;
+                        proj.y += (dy / distance) * moveSpeed;
+                    }
+                }
+            }
+            
+            handleProjectileHit(proj, target, projIndex) {
+                const unitType = this.unitTypes[proj.type];
+                
+                // ダメージ計算（アーマー考慮）
+                let damage = proj.damage;
+                if (target.armor) {
+                    damage *= (1 - target.armor);
+                }
+                
+                target.hp -= damage;
+                
+                // 特殊効果
+                switch (proj.special) {
+                    case 'slow':
+                        if (!target.freezeResist) {
+                            target.slowTimer = 2000;
+                            if (proj.level === 2) {
+                                target.frozen = true;
+                                setTimeout(() => target.frozen = false, 1000);
+                            }
+                        }
+                        break;
+                        
+                    case 'area':
+                        // 範囲ダメージ
+                        const areaRange = 50 + proj.level * 20;
+                        this.enemies.forEach(enemy => {
+                            if (enemy !== target) {
+                                const dx = enemy.x - target.x;
+                                const dy = enemy.y - target.y;
+                                const dist = Math.sqrt(dx * dx + dy * dy);
+                                if (dist < areaRange) {
+                                    enemy.hp -= damage * 0.5;
+                                }
+                            }
+                        });
+                        this.createEffect(target.x, target.y, unitType.effectEmoji[proj.level]);
+                        this.createParticles(target.x, target.y, 'explosion');
+                        break;
+                        
+                    case 'bounce':
+                        // バウンス処理
+                        if (proj.bouncesLeft > 0) {
+                            const nextTarget = this.findNearestEnemy(target.x, target.y, target);
+                            if (nextTarget) {
+                                proj.target = nextTarget;
+                                proj.bouncesLeft--;
+                                return; // 弾を削除しない
+                            }
+                        }
+                        break;
+                }
+                
+                // エフェクト
+                this.createEffect(target.x, target.y, '💥');
+                
+                // 敵撃破処理
+                if (target.hp <= 0) {
+                    this.handleEnemyDefeat(target);
+                }
+                
+                // 弾削除
+                this.projectiles.splice(projIndex, 1);
+            }
+            
+            findNearestEnemy(x, y, exclude) {
+                let nearest = null;
+                let minDist = 100;
+                
+                this.enemies.forEach(enemy => {
+                    if (enemy === exclude) return;
+                    
+                    const dx = enemy.x - x;
+                    const dy = enemy.y - y;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+                    
+                    if (dist < minDist) {
+                        minDist = dist;
+                        nearest = enemy;
+                    }
+                });
+                
+                return nearest;
+            }
+            
+            handleEnemyDefeat(enemy) {
+                const index = this.enemies.indexOf(enemy);
+                if (index === -1) return;
+                
+                // 報酬
+                this.coins += enemy.reward;
+                this.score += enemy.reward * 2;
+                
+                // 分裂処理
+                if (enemy.splitOnDeath) {
+                    for (let i = 0; i < 2; i++) {
+                        const mini = {
+                            ...enemy,
+                            hp: enemy.maxHp * 0.3,
+                            maxHp: enemy.maxHp * 0.3,
+                            reward: Math.floor(enemy.reward * 0.3),
+                            emoji: '🟣',
+                            splitOnDeath: false
+                        };
+                        mini.x += (Math.random() - 0.5) * 20;
+                        mini.y += (Math.random() - 0.5) * 20;
+                        this.enemies.push(mini);
+                    }
+                }
+                
+                // エフェクト
+                this.createEffect(enemy.x, enemy.y, '💀');
+                this.createParticles(enemy.x, enemy.y, 'defeat');
+                
+                // 削除
+                this.enemies.splice(index, 1);
+                this.updateUI();
+            }
+            
+            createEffect(x, y, emoji) {
+                this.effects.push({
+                    x: x,
+                    y: y,
+                    emoji: emoji,
+                    time: 0,
+                    duration: 1000
+                });
+            }
+            
+            createParticles(x, y, type) {
+                const colors = {
+                    gold: ['#ffd700', '#ffed4e', '#fff8dc'],
+                    explosion: ['#ff6347', '#ff4500', '#ffa500'],
+                    defeat: ['#9370db', '#ba55d3', '#dda0dd']
+                };
+                
+                const particleColors = colors[type] || colors.gold;
+                
+                for (let i = 0; i < 10; i++) {
+                    this.particles.push({
+                        x: x,
+                        y: y,
+                        vx: (Math.random() - 0.5) * 4,
+                        vy: (Math.random() - 0.5) * 4,
+                        color: particleColors[Math.floor(Math.random() * particleColors.length)],
+                        size: Math.random() * 4 + 2,
+                        life: 1
+                    });
+                }
+            }
+            
+            updateEffects(deltaTime) {
+                for (let i = this.effects.length - 1; i >= 0; i--) {
+                    const effect = this.effects[i];
+                    effect.time += deltaTime;
+                    
+                    if (effect.time > effect.duration) {
+                        this.effects.splice(i, 1);
+                    }
+                }
+                
+                for (let i = this.particles.length - 1; i >= 0; i--) {
+                    const particle = this.particles[i];
+                    particle.x += particle.vx;
+                    particle.y += particle.vy;
+                    particle.vy += 0.2;
+                    particle.life -= 0.02;
+                    
+                    if (particle.life <= 0) {
+                        this.particles.splice(i, 1);
+                    }
+                }
+            }
+            
+            render() {
+                // 背景
+                this.ctx.fillStyle = this.stageBackground;
+                this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+                
+                // グリッド
+                this.ctx.strokeStyle = 'rgba(0, 0, 0, 0.1)';
+                this.ctx.lineWidth = 1;
+                for (let i = 0; i <= this.cols; i++) {
+                    this.ctx.beginPath();
+                    this.ctx.moveTo(i * this.gridSize, 0);
+                    this.ctx.lineTo(i * this.gridSize, this.canvas.height);
+                    this.ctx.stroke();
+                }
+                for (let i = 0; i <= this.rows; i++) {
+                    this.ctx.beginPath();
+                    this.ctx.moveTo(0, i * this.gridSize);
+                    this.ctx.lineTo(this.canvas.width, i * this.gridSize);
+                    this.ctx.stroke();
+                }
+                
+                // パス
+                this.ctx.strokeStyle = this.pathColor;
+                this.ctx.lineWidth = this.gridSize - 10;
+                this.ctx.lineCap = 'round';
+                this.ctx.lineJoin = 'round';
+                this.ctx.beginPath();
+                for (let i = 0; i < this.currentPath.length; i++) {
+                    const point = this.currentPath[i];
+                    const x = point.x * this.gridSize + this.gridSize/2;
+                    const y = point.y * this.gridSize + this.gridSize/2;
+                    if (i === 0) {
+                        this.ctx.moveTo(x, y);
+                    } else {
+                        this.ctx.lineTo(x, y);
+                    }
+                }
+                this.ctx.stroke();
+                
+                // スタートとゴール
+                this.ctx.font = '30px Arial';
+                const startPoint = this.currentPath[0];
+                const endPoint = this.currentPath[this.currentPath.length - 1];
+                this.ctx.fillText('🏠', startPoint.x * this.gridSize + 5, startPoint.y * this.gridSize + 30);
+                this.ctx.fillText('🏰', endPoint.x * this.gridSize + 5, endPoint.y * this.gridSize + 30);
+                
+                // ユニット
+                this.units.forEach(unit => {
+                    const unitType = this.unitTypes[unit.type];
+                    const x = unit.x * this.gridSize + this.gridSize/2;
+                    const y = unit.y * this.gridSize + this.gridSize/2;
+                    
+                    // レベルに応じた背景
+                    const colors = ['rgba(255,255,255,0.5)', 'rgba(255,215,0,0.5)', 'rgba(255,0,255,0.5)'];
+                    this.ctx.fillStyle = colors[unit.level - 1];
+                    this.ctx.beginPath();
+                    this.ctx.arc(x, y, 18 + unit.level * 2, 0, Math.PI * 2);
+                    this.ctx.fill();
+                    
+                    // ユニット絵文字
+                    this.ctx.font = `${20 + unit.level * 3}px Arial`;
+                    this.ctx.fillText(unitType.emoji, x - 12 - unit.level, y + 8);
+                    
+                    // レベル表示
+                    if (unit.level > 1) {
+                        this.ctx.font = '12px Arial';
+                        this.ctx.fillStyle = 'gold';
+                        this.ctx.fillText('★'.repeat(unit.level - 1), x - 10, y - 20);
+                    }
+                    
+                    // 射程表示（薄く）
+                    if (unitType.range && unitType.range[unit.level - 1] > 0) {
+                        this.ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+                        this.ctx.beginPath();
+                        this.ctx.arc(x, y, unitType.range[unit.level - 1], 0, Math.PI * 2);
+                        this.ctx.stroke();
+                    }
+                });
+                
+                // 敵
+                this.enemies.forEach(enemy => {
+                    // 状態異常エフェクト
+                    if (enemy.slowTimer > 0) {
+                        this.ctx.fillStyle = 'rgba(135, 206, 235, 0.5)';
+                        this.ctx.beginPath();
+                        this.ctx.arc(enemy.x, enemy.y, 20, 0, Math.PI * 2);
+                        this.ctx.fill();
+                    }
+                    
+                    if (enemy.frozen) {
+                        this.ctx.fillStyle = 'rgba(0, 191, 255, 0.7)';
+                        this.ctx.beginPath();
+                        this.ctx.arc(enemy.x, enemy.y, 22, 0, Math.PI * 2);
+                        this.ctx.fill();
+                    }
+                    
+                    // 敵本体
+                    this.ctx.font = enemy.isBoss ? '35px Arial' : '25px Arial';
+                    this.ctx.fillText(enemy.emoji, enemy.x - 15, enemy.y + 10);
+                    
+                    // HPバー
+                    const barWidth = enemy.isBoss ? 40 : 30;
+                    const barHeight = enemy.isBoss ? 5 : 3;
+                    this.ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+                    this.ctx.fillRect(enemy.x - barWidth/2, enemy.y - 25, barWidth, barHeight);
+                    
+                    const hpPercent = enemy.hp / enemy.maxHp;
+                    const hpColor = hpPercent > 0.5 ? '#00ff00' : hpPercent > 0.25 ? '#ffff00' : '#ff0000';
+                    this.ctx.fillStyle = hpColor;
+                    this.ctx.fillRect(enemy.x - barWidth/2, enemy.y - 25, barWidth * hpPercent, barHeight);
+                });
+                
+                // 弾
+                this.projectiles.forEach(proj => {
+                    this.ctx.fillStyle = proj.color;
+                    this.ctx.beginPath();
+                    this.ctx.arc(proj.x, proj.y, 4 + proj.level, 0, Math.PI * 2);
+                    this.ctx.fill();
+                    
+                    // トレイル効果
+                    this.ctx.strokeStyle = proj.color;
+                    this.ctx.globalAlpha = 0.3;
+                    this.ctx.lineWidth = 2;
+                    this.ctx.beginPath();
+                    this.ctx.moveTo(proj.x, proj.y);
+                    const dx = proj.target.x - proj.x;
+                    const dy = proj.target.y - proj.y;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+                    this.ctx.lineTo(proj.x - (dx/dist) * 10, proj.y - (dy/dist) * 10);
+                    this.ctx.stroke();
+                    this.ctx.globalAlpha = 1;
+                });
+                
+                // パーティクル
+                this.particles.forEach(particle => {
+                    this.ctx.fillStyle = particle.color;
+                    this.ctx.globalAlpha = particle.life;
+                    this.ctx.beginPath();
+                    this.ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
+                    this.ctx.fill();
+                });
+                this.ctx.globalAlpha = 1;
+                
+                // エフェクト
+                this.effects.forEach(effect => {
+                    const progress = effect.time / effect.duration;
+                    this.ctx.globalAlpha = 1 - progress;
+                    this.ctx.font = `${30 + progress * 20}px Arial`;
+                    this.ctx.fillText(effect.emoji, effect.x - 15, effect.y + 10);
+                });
+                this.ctx.globalAlpha = 1;
+            }
+            
+            gameLoop() {
+                const currentTime = Date.now();
+                const deltaTime = 16;
+                
+                if (!this.isPaused) {
+                    // 敵スポーン
+                    if (this.isWaveActive && this.enemyIndex < this.enemiesInWave.length) {
+                        this.enemySpawnTimer += deltaTime;
+                        if (this.enemySpawnTimer > this.enemySpawnDelay / this.gameSpeed) {
+                            this.spawnEnemy();
+                            this.enemySpawnTimer = 0;
+                        }
+                    }
+                    
+                    // ウェーブ終了チェック
+                    if (this.isWaveActive && this.enemyIndex >= this.enemiesInWave.length && this.enemies.length === 0) {
+                        this.wave++;
+                        this.isWaveActive = false;
+                        document.getElementById('startWave').disabled = false;
+                        
+                        if (this.wave > this.maxWave) {
+                            this.stageClear();
+                        } else {
+                            this.updateUI();
+                        }
+                    }
+                    
+                    this.updateEnemies(deltaTime);
+                    this.updateUnits(currentTime);
+                    this.updateProjectiles(deltaTime);
+                    this.updateEffects(deltaTime);
+                }
+                
+                this.render();
+                requestAnimationFrame(() => this.gameLoop());
+            }
+            
+            stageClear() {
+                const stars = this.lives >= 8 ? '⭐⭐⭐⭐' : this.lives >= 5 ? '⭐⭐⭐' : this.lives >= 2 ? '⭐⭐' : '⭐';
+                const bonus = 100 * this.currentStage;
+                
+                document.getElementById('starRating').textContent = stars;
+                document.getElementById('clearScore').textContent = this.score;
+                document.getElementById('bonusCoins').textContent = bonus;
+                document.getElementById('stageClear').style.display = 'block';
+                
+                this.coins += bonus;
+                this.updateUI();
+                
+                if (this.currentStage < 10) {
+                    document.getElementById('nextStage').style.display = 'inline-block';
+                }
+            }
+            
+            nextStage() {
+                if (this.currentStage >= 10) {
+                    alert('全ステージクリア！おめでとう！🎉');
+                    location.reload();
+                    return;
+                }
+                
+                this.currentStage++;
+                this.units = [];
+                this.enemies = [];
+                this.projectiles = [];
+                this.effects = [];
+                this.particles = [];
+                this.isWaveActive = false;
+                
+                document.getElementById('nextStage').style.display = 'none';
+                document.getElementById('startWave').disabled = false;
+                
+                this.loadStage(this.currentStage);
+            }
+            
+            gameOver() {
+                document.getElementById('finalStage').textContent = this.currentStage;
+                document.getElementById('finalScore').textContent = this.score;
+                document.getElementById('gameOver').style.display = 'block';
+                this.isPaused = true;
+            }
+            
+            togglePause() {
+                this.isPaused = !this.isPaused;
+                document.getElementById('pauseGame').textContent = this.isPaused ? 'さいかい ▶️' : 'いちじていし ⏸️';
+            }
+            
+            toggleSpeed() {
+                this.gameSpeed = this.gameSpeed === 1 ? 2 : this.gameSpeed === 2 ? 3 : 1;
+                const speedText = {1: 'はやおくり ⏩', 2: '2ばいそく ⏩⏩', 3: '3ばいそく ⏩⏩⏩'};
+                document.getElementById('speedUp').textContent = speedText[this.gameSpeed];
+            }
+            
+            updateUI() {
+                document.getElementById('coins').textContent = this.coins;
+                document.getElementById('lives').textContent = this.lives;
+                document.getElementById('wave').textContent = this.wave;
+                document.getElementById('score').textContent = this.score;
+            }
+        }
+        
+        // ゲーム開始
+        const game = new TowerDefenseGame();
+    </script>
+</body>
+</html>
